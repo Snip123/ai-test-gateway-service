@@ -10,4 +10,4 @@ Gherkin feature files for the **Gateway** bounded context.
 
 | File | Status |
 |------|--------|
-| — | No specs yet — write a spec before writing code (ADR-0002) |
+| [request-routing.feature](request-routing.feature) | Added retroactively — Tenant resolution, JWT validation, upstream proxying |
