@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 )
 
 // upstreamEnvKeys maps path prefixes to the env var holding the upstream URL (ADR-0011).
@@ -29,6 +30,7 @@ var upstreamEnvKeys = map[string]string{
 }
 
 func main() {
+	_ = godotenv.Load() // load .env if present (local dev only — no-op in production)
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 	if err := run(ctx); err != nil {
@@ -66,7 +68,7 @@ func run(ctx context.Context) error {
 		mw := gatewayMiddleware(environment, authDisabled)
 		p := prefix
 		r.Handle(p, mw(proxy))
-		r.Handle(p+"/*", mw(http.StripPrefix(p, proxy)))
+		r.Handle(p+"/*", mw(proxy))
 	}
 
 	srv := &http.Server{
