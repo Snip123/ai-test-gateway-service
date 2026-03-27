@@ -48,6 +48,7 @@ func run(ctx context.Context) error {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(corsMiddleware)
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -163,6 +164,26 @@ func writeProblem(w http.ResponseWriter, status int, errType, title, detail stri
 	w.WriteHeader(status)
 	fmt.Fprintf(w, `{"type":"https://fsi-platform.com/errors/%s","title":%q,"status":%d,"detail":%q}`,
 		errType, title, status, detail)
+}
+
+// corsMiddleware allows Flutter web (and other browser clients) to call the gateway.
+// Permissive in local dev; production should restrict AllowedOrigins to known domains.
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			origin = "*"
+		}
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Tenant-ID, X-Request-ID")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func env(key, fallback string) string {
