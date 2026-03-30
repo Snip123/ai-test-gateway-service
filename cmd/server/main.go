@@ -162,7 +162,7 @@ func validateJWT(r *http.Request) (userID, role string, err error) {
 func writeProblem(w http.ResponseWriter, status int, errType, title, detail string) {
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(status)
-	fmt.Fprintf(w, `{"type":"https://fsi-platform.com/errors/%s","title":%q,"status":%d,"detail":%q}`,
+	fmt.Fprintf(w, `{"type":"https://cmms-platform.example/errors/%s","title":%q,"status":%d,"detail":%q}`,
 		errType, title, status, detail)
 }
 
